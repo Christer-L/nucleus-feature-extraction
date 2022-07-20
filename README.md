@@ -1,4 +1,4 @@
-# nucleus_feature_extraction
+# Nucleus Feature Extraction
 
 [![License](https://img.shields.io/github/license/Christer-L/nucleus_feature_extraction?label=license)](https://github.com/EdgarLefevre/nucleus_feature_extraction/blob/main/LICENSE)
 
