@@ -1,11 +1,12 @@
-from glob import glob
 import os
-import tifffile as tfile
+from glob import glob
+
 import numpy as np
 import pandas as pd
-
 import radiomics
-from radiomics import featureextractor 
+import tifffile as tfile
+from radiomics import featureextractor
+
 
 def prepare_paths(data_dir: str):
     real_img_paths = glob(os.path.join(data_dir, "*_real_voxel.tif"))

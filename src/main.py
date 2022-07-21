@@ -1,5 +1,6 @@
-from utils import prepare_paths, extract_features
 import os
+
+from utils import extract_features, prepare_paths
 
 if __name__ == '__main__':
     params_path = "/home/clohk/projects/nucleus_feature_extraction/src/params.yaml"
