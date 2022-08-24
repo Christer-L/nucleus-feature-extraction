@@ -1,7 +1,7 @@
 import os
-
-from utils import extract_features, prepare_paths, prepare_data
 from datetime import datetime
+
+from utils import extract_features, prepare_data, prepare_paths
 
 if __name__ == '__main__':
     PARAMS_PATH = "/home/clohk/projects/nucleus_feature_extraction/src/params.yaml"
