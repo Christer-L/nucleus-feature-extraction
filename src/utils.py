@@ -1,11 +1,12 @@
 import os
 from glob import glob
-
 import numpy as np
 import pandas as pd
 import radiomics
 import tifffile as tfile
 from radiomics import featureextractor
+from tqdm import tqdm
+import SimpleITK as sitk
 
 
 def prepare_paths(data_dir: str):
@@ -15,39 +16,57 @@ def prepare_paths(data_dir: str):
             in real_img_paths]
     fake_img_paths = [stem + "_fake_voxel.tif" for stem in stems]
     mask_paths = [stem + "_mask.tif" for stem in stems]
-
     return real_img_paths, fake_img_paths, mask_paths
+
+
+def prepare_data(image_paths: list, mask_paths: list):
+    images = [sitk.ReadImage(image_path, imageIO="TIFFImageIO") 
+            for image_path 
+            in image_paths]
+    masks = [sitk.ReadImage(mask_path, imageIO="TIFFImageIO") 
+            for mask_path 
+            in mask_paths]
+    return images, masks
 
 
 def extract_features(
         params_path: str, 
-        img_paths: list,
-        mask_paths: list,
-        file_names: list) -> pd.DataFrame:
+        images: list,
+        masks: list,
+        file_names: list,
+        save_to=None) -> pd.DataFrame:
     metrics = []
     labels = []
     extractor = featureextractor.RadiomicsFeatureExtractor(params_path)
-    for i, mask_path in enumerate(mask_paths):
-        mask = tfile.imread(mask_path).astype(int)
+    for i, mask in enumerate(masks[0:2]):
+        print("Image {}/{}".format(i + 1, len(masks)))
         # Get all nuclei label values
-        for nucleus_label in np.unique(mask):
-            # Ignore the background
-            if nucleus_label == 0:
-                continue
-            output = extractor.execute(
-                    img_paths[i], 
-                    mask_path, 
-                    label=int(nucleus_label))
-            values = [float(str(output[k])) 
-                    for k in output 
-                    if not k.startswith("diagnostics")]
-            if 'cols' not in globals():
-                cols = [k for k in output if not k.startswith("diagnostics")]
-            values.append(int(nucleus_label))
-            values.append(file_names[i])
-            metrics.append(values)
-            print(len(metrics))
-        break
+        mask_values = np.unique(mask)
+        print(mask_values)
+        with tqdm(total=len(mask_values) - 1, colour='green') as pbar:
+            for nucleus_label in mask_values:
+                if nucleus_label == 0:
+                    continue
+                output = extractor.execute(
+                        images[i],
+                        mask, 
+                        label=int(nucleus_label))
+                values = [float(str(output[k])) 
+                        for k in output 
+                        if not k.startswith("diagnostics")]
+                if 'cols' not in globals():
+                    cols = [k for k in output if not k.startswith("diagnostics")]
+                values.append(int(nucleus_label))
+                values.append(file_names[i])
+                metrics.append(values)
+                pbar.update(1)
+    df = pd.DataFrame(metrics, columns = cols + ["label", "filename"])
+    if save_to is not None:
+        df.to_csv(save_to, sep='\t', encoding='utf-8')
+    return df
 
-    return pd.DataFrame(metrics, 
-            columns = cols + ["label", "filename"])
+
+def get_image_info(path):
+    img = sitk.ReadImage(path, imageIO="TIFFImageIO")
+    print("Origin: {}, Spacing: {}".format(img.GetOrigin(), img.GetSpacing())) 
+
