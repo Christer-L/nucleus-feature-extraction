@@ -1,12 +1,13 @@
 import os
 from glob import glob
+
 import numpy as np
 import pandas as pd
 import radiomics
+import SimpleITK as sitk
 import tifffile as tfile
 from radiomics import featureextractor
 from tqdm import tqdm
-import SimpleITK as sitk
 
 
 def prepare_paths(data_dir: str):
