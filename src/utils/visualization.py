@@ -1,8 +1,10 @@
 from string import ascii_letters
+
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
-import matplotlib.pyplot as plt
+
 
 def get_crosscorrelation(features, out, n_top_features=8):
     # Compute the correlation matrix

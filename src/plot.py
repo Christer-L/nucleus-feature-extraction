@@ -1,7 +1,7 @@
 import os
+
 from utils.utils import load_features
 from utils.visualization import get_crosscorrelation
-
 
 TABLE_INPUT_PATH = "/home/clohk/projects/nucleus_feature_extraction/results/data/"
 OUT_PATH = "/home/clohk/projects/nucleus_feature_extraction/results/plots/"
