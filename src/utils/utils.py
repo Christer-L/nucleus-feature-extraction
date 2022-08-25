@@ -30,17 +30,20 @@ def prepare_data(image_paths: list, mask_paths: list):
     return images, masks
 
 
+def load_features(table_path) -> pd.DataFrame:
+    return pd.read_csv(table_path, sep='\t') 
+
+
 def extract_features(
-    params_path: str, images: list, masks: list, file_names: list, save_to=None
+    params_path, images: list, masks: list, file_names: list, save_to=None
 ) -> pd.DataFrame:
     metrics = []
     labels = []
     extractor = featureextractor.RadiomicsFeatureExtractor(params_path)
-    for i, mask in enumerate(masks[0:2]):
+    for i, mask in enumerate(masks):
         print("Image {}/{}".format(i + 1, len(masks)))
         # Get all nuclei label values
         mask_values = np.unique(mask)
-        print(mask_values)
         with tqdm(total=len(mask_values) - 1, colour="green") as pbar:
             for nucleus_label in mask_values:
                 if nucleus_label == 0:
