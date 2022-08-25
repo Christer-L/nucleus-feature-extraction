@@ -19,11 +19,12 @@ if __name__ == "__main__":
     df_features = df_features.loc[:, df_features.columns != 'Unnamed: 0'] 
     df_features = df_features.loc[:, df_features.columns != 'label'] 
     get_crosscorrelation(df_features, os.path.join(out_dir, "crosscorr.png"))
-    c = df_features.corr().abs()
+    c = df_features.corr()
     s = c.unstack()
     so = s.sort_values(ascending=False)
     df = so.to_frame().reset_index()
     so = df[df['level_0'] != df['level_1']]
+    so = df[df['level_0'].str.contains("shape")]
     print(so[:50])
 
 

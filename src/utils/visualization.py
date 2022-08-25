@@ -20,11 +20,12 @@ def get_crosscorrelation(features, out, n_top_features=8):
     cmap = sns.diverging_palette(230, 20, as_cmap=True)
     
     # Draw the heatmap with the mask and correct aspect ratio
-    sns.heatmap(corr, mask=mask, cmap=cmap, vmax=.3, center=0,
+    sns.heatmap(corr, mask=mask, cmap=cmap, vmax=1.0, center=0,
                 square=True, linewidths=.5, cbar_kws={"shrink": .5})
 
 #    plt.matshow(features.corr())
     plt.savefig(out)
+    print()
 #    print("--- Cross-correlation of nucleus features ---")
 
 
