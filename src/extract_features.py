@@ -18,12 +18,13 @@ if __name__ == "__main__":
     dt_string = now.strftime("%d%m%Y_%H_%M_%S")
 
     table_file_name_real = os.path.join(
-            TABLE_OUTPUT_DIR, "{}-{}.csv".format(dt_string, "real")
-            )
+        TABLE_OUTPUT_DIR, "{}-{}.csv".format(dt_string, "real")
+    )
     table_file_name_synthetic = os.path.join(
-            TABLE_OUTPUT_DIR, "{}-{}.csv".format(dt_string, "synthetic")
-            )
+        TABLE_OUTPUT_DIR, "{}-{}.csv".format(dt_string, "synthetic")
+    )
 
     extract_features(PARAMS_PATH, real_images, masks, filenames, table_file_name_real)
-    extract_features(PARAMS_PATH, synthetic_images, masks, filenames, table_file_name_synthetic)
-
+    extract_features(
+        PARAMS_PATH, synthetic_images, masks, filenames, table_file_name_synthetic
+    )

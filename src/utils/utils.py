@@ -31,7 +31,7 @@ def prepare_data(image_paths: list, mask_paths: list):
 
 
 def load_features(table_path) -> pd.DataFrame:
-    return pd.read_csv(table_path, sep='\t') 
+    return pd.read_csv(table_path, sep="\t")
 
 
 def extract_features(
