@@ -1,16 +1,15 @@
 import os
 from glob import glob
 
+import bios
 import numpy as np
 import pandas as pd
 import radiomics
 import SimpleITK as sitk
 import tifffile as tfile
+from PIL import Image
 from radiomics import featureextractor
 from tqdm import tqdm
-from PIL import Image
-import numpy as np
-import bios
 
 
 def prepare_paths(data_dir: str):
