@@ -72,7 +72,7 @@ def get_params_from_yaml(params_path):
 # TODO: Check if numpy dims of the image have to be reversed as in documentation.
 # TODO: Check if features need to be returned in individual dataframes
 def extract_features(
-        params: dict, images: list, masks: list, file_names: list, save_to=None, merge_features=True
+        params: dict, images: list, masks: list, file_names: list, save_to=None
 ):
     '''
     Use image segmentations to extract features of the nuclei.

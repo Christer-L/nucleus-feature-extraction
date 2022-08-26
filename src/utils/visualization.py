@@ -6,34 +6,82 @@ import pandas as pd
 import seaborn as sns
 
 
-def get_crosscorrelation(features, out, n_top_features=8):
+def feature_crosscorrelation(features, out):
+    '''
+    Reference: https://seaborn.pydata.org/examples/many_pairwise_correlations.html
+    '''
     # Compute the correlation matrix
     corr = features.corr()
-
     # Generate a mask for the upper triangle
     mask = np.triu(np.ones_like(corr, dtype=bool))
-
     # Set up the matplotlib figure
-    f, ax = plt.subplots(figsize=(11, 9))
-
+    f, ax = plt.subplots(figsize=(32, 32))
     # Generate a custom diverging colormap
     cmap = sns.diverging_palette(230, 20, as_cmap=True)
-
     # Draw the heatmap with the mask and correct aspect ratio
     sns.heatmap(
         corr,
         mask=mask,
         cmap=cmap,
         vmax=1.0,
+        vmin=-1.0,
         center=0,
         square=True,
         linewidths=0.5,
-        cbar_kws={"shrink": 0.5},
+        cbar_kws={"shrink": .5},
+        xticklabels=True, yticklabels=True
     )
 
-    #    plt.matshow(features.corr())
+
+    # use matplotlib.colorbar.Colorbar object
+    cbar = ax.collections[0].colorbar
+    # here set the labelsize by 20
+    cbar.ax.tick_params(labelsize=20)
+
+    ax.set_xticklabels(ax.get_xmajorticklabels(), fontsize = 10)
+    ax.set_yticklabels(ax.get_ymajorticklabels(), fontsize = 10)
     plt.savefig(out)
-    print()
+
+    return corr
+
+def plot_heatmap(corr, out):
+    '''
+    Reference: https://seaborn.pydata.org/examples/many_pairwise_correlations.html
+    '''
+    # Generate a mask for the upper triangle
+    mask = np.triu(np.ones_like(corr, dtype=bool))
+    # Set up the matplotlib figure
+    f, ax = plt.subplots(figsize=(36, 32))
+    # Generate a custom diverging colormap
+    cmap = sns.diverging_palette(230, 20, as_cmap=True)
+    # Draw the heatmap with the mask and correct aspect ratio
+    sns.heatmap(
+        corr,
+        mask=mask,
+        cmap=cmap,
+        center=0,
+        square=True,
+        linewidths=0.5,
+        cbar_kws={"shrink": .5},
+        xticklabels=True, yticklabels=True
+    )
+
+    # use matplotlib.colorbar.Colorbar object
+    cbar = ax.collections[0].colorbar
+    # here set the labelsize by 20
+    cbar.ax.tick_params(labelsize=20)
+
+    for tick_label in ax.axes.get_yticklabels():
+        if "shape" in str(tick_label):
+            tick_label.set_color("red")
+    for tick_label in ax.axes.get_xticklabels():
+        if "shape" in str(tick_label):
+            tick_label.set_color("red")
 
 
-#    print("--- Cross-correlation of nucleus features ---")
+    ax.set_xticklabels(ax.get_xmajorticklabels(), fontsize = 10)
+    ax.set_yticklabels(ax.get_ymajorticklabels(), fontsize = 10)
+    plt.savefig(out)
+
+    return corr
+
