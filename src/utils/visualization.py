@@ -7,9 +7,9 @@ import seaborn as sns
 
 
 def feature_crosscorrelation(features, out):
-    '''
+    """
     Reference: https://seaborn.pydata.org/examples/many_pairwise_correlations.html
-    '''
+    """
     # Compute the correlation matrix
     corr = features.corr()
     # Generate a mask for the upper triangle
@@ -28,26 +28,27 @@ def feature_crosscorrelation(features, out):
         center=0,
         square=True,
         linewidths=0.5,
-        cbar_kws={"shrink": .5},
-        xticklabels=True, yticklabels=True
+        cbar_kws={"shrink": 0.5},
+        xticklabels=True,
+        yticklabels=True,
     )
-
 
     # use matplotlib.colorbar.Colorbar object
     cbar = ax.collections[0].colorbar
     # here set the labelsize by 20
     cbar.ax.tick_params(labelsize=20)
 
-    ax.set_xticklabels(ax.get_xmajorticklabels(), fontsize = 10)
-    ax.set_yticklabels(ax.get_ymajorticklabels(), fontsize = 10)
+    ax.set_xticklabels(ax.get_xmajorticklabels(), fontsize=10)
+    ax.set_yticklabels(ax.get_ymajorticklabels(), fontsize=10)
     plt.savefig(out)
 
     return corr
 
+
 def plot_heatmap(corr, out):
-    '''
+    """
     Reference: https://seaborn.pydata.org/examples/many_pairwise_correlations.html
-    '''
+    """
     # Generate a mask for the upper triangle
     mask = np.triu(np.ones_like(corr, dtype=bool))
     # Set up the matplotlib figure
@@ -62,8 +63,9 @@ def plot_heatmap(corr, out):
         center=0,
         square=True,
         linewidths=0.5,
-        cbar_kws={"shrink": .5},
-        xticklabels=True, yticklabels=True
+        cbar_kws={"shrink": 0.5},
+        xticklabels=True,
+        yticklabels=True,
     )
 
     # use matplotlib.colorbar.Colorbar object
@@ -78,10 +80,8 @@ def plot_heatmap(corr, out):
         if "shape" in str(tick_label):
             tick_label.set_color("red")
 
-
-    ax.set_xticklabels(ax.get_xmajorticklabels(), fontsize = 10)
-    ax.set_yticklabels(ax.get_ymajorticklabels(), fontsize = 10)
+    ax.set_xticklabels(ax.get_xmajorticklabels(), fontsize=10)
+    ax.set_yticklabels(ax.get_ymajorticklabels(), fontsize=10)
     plt.savefig(out)
 
     return corr
-

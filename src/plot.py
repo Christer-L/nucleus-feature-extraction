@@ -25,11 +25,9 @@ if __name__ == "__main__":
     df_features_s = df_features_s.loc[:, df_features_s.columns != "filename"]
     df_features_s = df_features_s.loc[:, df_features_s.columns != "Unnamed: 0"]
     df_features_s = df_features_s.loc[:, df_features_s.columns != "label"]
-    
+
     # Fix difference
     plot_heatmap(abs(df_features.corr() - df_features_s.corr()), out_dir)
-
-
 
     c = df_features.corr()
     s = c.unstack()
