@@ -1,10 +1,10 @@
+import os
 from string import ascii_letters
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
-import os
 
 
 def feature_crosscorrelation(features, out):
