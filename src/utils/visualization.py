@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
+import os
 
 
 def feature_crosscorrelation(features, out):
@@ -75,13 +76,38 @@ def plot_heatmap(corr, out):
 
     for tick_label in ax.axes.get_yticklabels():
         if "shape" in str(tick_label):
-            tick_label.set_color("red")
+            tick_label.set_color("blue")
+        if "firstorder" in str(tick_label):
+            tick_label.set_color("orange")
+        if "glcm" in str(tick_label):
+            tick_label.set_color("green")
+        if "glszm" in str(tick_label):
+            tick_label.set_color("purple")
+        if "glrlm" in str(tick_label):
+            tick_label.set_color("olive")
+        if "ngtdm" in str(tick_label):
+            tick_label.set_color("pink")
+        if "gldm" in str(tick_label):
+            tick_label.set_color("cyan")
+
     for tick_label in ax.axes.get_xticklabels():
         if "shape" in str(tick_label):
-            tick_label.set_color("red")
-
+            tick_label.set_color("blue")
+        if "firstorder" in str(tick_label):
+            tick_label.set_color("orange")
+        if "glcm" in str(tick_label):
+            tick_label.set_color("green")
+        if "glszm" in str(tick_label):
+            tick_label.set_color("purple")
+        if "glrlm" in str(tick_label):
+            tick_label.set_color("olive")
+        if "ngtdm" in str(tick_label):
+            tick_label.set_color("pink")
+        if "gldm" in str(tick_label):
+            tick_label.set_color("cyan")
+            
     ax.set_xticklabels(ax.get_xmajorticklabels(), fontsize=10)
     ax.set_yticklabels(ax.get_ymajorticklabels(), fontsize=10)
-    plt.savefig(out)
+    plt.savefig(os.path.join(out, "difference.png"))
 
     return corr
