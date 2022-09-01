@@ -3,19 +3,27 @@ from glob import glob
 from typing import Optional
 
 import bios
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import radiomics
-import seaborn as sns
 import SimpleITK as sitk
 import tifffile as tfile
-from arkitekt.apps.connected import ConnectedApp
-from mikro.api.schema import (OmeroFileFragment, RepresentationFragment,
-                              TableFragment, from_df, upload_bioimage)
 from PIL import Image
 from radiomics import featureextractor
 from tqdm import tqdm
+from arkitekt.apps.connected import ConnectedApp
+from mikro.api.schema import (
+    TableFragment,
+    RepresentationFragment,
+    from_df,
+    OmeroFileFragment,
+    upload_bioimage,
+    create_size_feature,
+    create_label,
+)
+import seaborn as sns
+import matplotlib.pyplot as plt
+
 
 app = ConnectedApp()
 app.fakts.grant.open_browser = False
@@ -137,8 +145,12 @@ def extract_features(
     return df
 
 
-def extract_features(
-    params: dict, images: list, masks: list, save_to=None, merge_features=False
+def extract_features_u(
+    params: dict,
+    image: RepresentationFragment,
+    mask: RepresentationFragment,
+    save_to=None,
+    merge_features=False,
 ):
     """
     Use image segmentations to extract features of the nuclei.
@@ -158,35 +170,33 @@ def extract_features(
         Returns:
             df (DataFrame): a table of features with their corresponding images.
     """
-    print(images)
-    print(masks)
+
+    raw_image = sitk.GetImageFromArray(image.data.sel(c=0, t=0).data.compute())
+    mask_image = sitk.GetImageFromArray(mask.data.sel(c=0, t=0).data.compute())
+
     metrics = []
-    labels = []
     extractor = featureextractor.RadiomicsFeatureExtractor()
     extractor._applyParams(paramsDict=params)
 
     """Return features in a single dataframe"""
-    for i, mask in enumerate(masks):
-        print("Image {}/{}".format(i + 1, len(masks)))
-        mask_values = np.unique(mask)  # Get all nuclei label values
-        with tqdm(total=len(mask_values) - 1, colour="green") as pbar:
-            for nucleus_label in mask_values:
-                if nucleus_label == 0:
-                    continue
-                output = extractor.execute(images[i], mask, label=int(nucleus_label))
-                values = [
-                    float(str(output[k]))
-                    for k in output
-                    if not k.startswith("diagnostics")
-                ]
-                if "cols" not in globals():
-                    cols = [k for k in output if not k.startswith("diagnostics")]
-                values.append(int(nucleus_label))
-                metrics.append(values)
-                pbar.update(1)
-    df = pd.DataFrame(metrics, columns=cols + ["label"])
+    mask_values = np.unique(mask_image)  # Get all nuclei label values
+    with tqdm(total=len(mask_values) - 1, colour="green") as pbar:
+        for nucleus_label in mask_values:
+            if nucleus_label == 0:
+                continue
+            output = extractor.execute(raw_image, mask_image, label=int(nucleus_label))
+            values = [
+                float(str(output[k])) for k in output if not k.startswith("diagnostics")
+            ]
+            if "cols" not in globals():
+                cols = [k for k in output if not k.startswith("diagnostics")]
+            values.append(int(nucleus_label))
+            label = create_label(int(nucleus_label), mask, 1)
+            create_size_feature(label, values[3])
+            metrics.append(values)
+            pbar.update(1)
 
-    print(df)
+    df = pd.DataFrame(metrics, columns=cols + ["label"])
 
     if save_to is not None and merge_features:
         df.to_csv(save_to, sep="\t", encoding="utf-8")
@@ -223,6 +233,30 @@ def extract_feature_basic(
         [sitk.GetImageFromArray(raw_image)],
         [sitk.GetImageFromArray(mask_image)],
     )
+
+    # extract_features
+    return from_df(df, name=f"Features of {image.name}")
+
+
+@app.rekuest.register()
+def extract_feature_adv(
+    image: RepresentationFragment, mask: RepresentationFragment
+) -> TableFragment:
+    """Exract features Adv
+
+    Extract features from a given image and mask.
+
+    Args:
+        image (RepresentationFragment): _description_
+        mask (RepresentationFragment): _description_
+
+    Returns:
+        TableFragment: _description_
+    """
+
+    params = bios.read("params.yaml")
+
+    df = extract_features_u(params, image, mask)
 
     # extract_features
     return from_df(df, name=f"Features of {image.name}")
