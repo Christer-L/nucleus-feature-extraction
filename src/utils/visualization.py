@@ -105,7 +105,7 @@ def plot_heatmap(corr, out):
             tick_label.set_color("pink")
         if "gldm" in str(tick_label):
             tick_label.set_color("cyan")
-            
+
     ax.set_xticklabels(ax.get_xmajorticklabels(), fontsize=10)
     ax.set_yticklabels(ax.get_ymajorticklabels(), fontsize=10)
     plt.savefig(os.path.join(out, "difference.png"))
