@@ -3,25 +3,19 @@ from glob import glob
 from typing import Optional
 
 import bios
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import radiomics
+import seaborn as sns
 import SimpleITK as sitk
 import tifffile as tfile
+from arkitekt.apps.connected import ConnectedApp
+from mikro.api.schema import (OmeroFileFragment, RepresentationFragment,
+                              TableFragment, from_df, upload_bioimage)
 from PIL import Image
 from radiomics import featureextractor
 from tqdm import tqdm
-from arkitekt.apps.connected import ConnectedApp
-from mikro.api.schema import (
-    TableFragment,
-    RepresentationFragment,
-    from_df,
-    OmeroFileFragment,
-    upload_bioimage,
-)
-import seaborn as sns
-import matplotlib.pyplot as plt
-
 
 app = ConnectedApp()
 app.fakts.grant.open_browser = False
