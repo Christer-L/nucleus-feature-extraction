@@ -11,15 +11,9 @@ import seaborn as sns
 import SimpleITK as sitk
 import tifffile as tfile
 from arkitekt.apps.connected import ConnectedApp
-from mikro.api.schema import (
-    OmeroFileFragment,
-    RepresentationFragment,
-    TableFragment,
-    create_label,
-    create_size_feature,
-    from_df,
-    upload_bioimage,
-)
+from mikro.api.schema import (OmeroFileFragment, RepresentationFragment,
+                              TableFragment, create_label, create_size_feature,
+                              from_df, upload_bioimage)
 from PIL import Image
 from radiomics import featureextractor
 from tqdm import tqdm
