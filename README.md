@@ -1,5 +1,5 @@
 # Nucleus Feature Extraction
 
-[![License](https://img.shields.io/github/license/Christer-L/nucleus_feature_extraction?label=license)](https://github.com/Christer-L/nucleus-feature-extraction/blob/master/LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 [![CBiB Logo](imgs/cbib_logo.png)](https://www.cbib.u-bordeaux.fr/)
