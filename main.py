@@ -1,32 +1,39 @@
+from enum import Enum
+import math
 import os
 from glob import glob
-from typing import Optional
+from typing import List, Optional
 
 import bios
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import radiomics
-import seaborn as sns
 import SimpleITK as sitk
 import tifffile as tfile
-from arkitekt.apps.connected import ConnectedApp
-from mikro.api.schema import (
-    OmeroFileFragment,
-    RepresentationFragment,
-    TableFragment,
-    create_label,
-    create_size_feature,
-    from_df,
-    upload_bioimage,
-)
 from PIL import Image
 from radiomics import featureextractor
 from tqdm import tqdm
+from arkitekt.apps.connected import ConnectedApp
+from mikro.api.schema import (
+    TableFragment,
+    RepresentationFragment,
+    from_df,
+    OmeroFileFragment,
+    upload_bioimage,
+    create_feature,
+    create_label,
+    get_representation,
+)
+
+import seaborn as sns
+import matplotlib.pyplot as plt
+from rekuest.utils import progress
+
 
 app = ConnectedApp()
 app.fakts.grant.open_browser = False
-app.fakts.grant.discovery.base_url = "http://fakts address:8000/f/"
+app.fakts.grant.name = "Radiomics"
+app.fakts.grant.discovery.base_url = "http://localhost:8000/f/"
 
 
 def prepare_paths(data_dir: str):
@@ -88,60 +95,16 @@ def get_params_from_yaml(params_path):
 # Feature extraction returns OrderedDict which is then converted to pd.DataFrame.
 # TODO: Check if numpy dims of the image have to be reversed as in documentation.
 # TODO: Check if features need to be returned in individual dataframes
-def extract_features(
-    params: dict, images: list, masks: list, save_to=None, merge_features=False
-):
-    """
-    Use image segmentations to extract features of the nuclei.
 
-        Parameters:
-            params (dict): Feature extraction parameters from the parameter file
-            (https://pyradiomics.readthedocs.io/en/latest/customization.html#parameter-file)
 
-            images (list[ndarray]): a list of 3D images in numpy ndarray format
-
-            masks (list[ndarray]): a list of corresponding 3D masks in numpy ndarray format.
-
-            file_names (list[str]): a list of image names associated with their features.
-
-            save_to (str): a path of a directory where the results are saved.
-
-        Returns:
-            df (DataFrame): a table of features with their corresponding images.
-    """
-    print(images)
-    print(masks)
-    metrics = []
-    labels = []
-    extractor = featureextractor.RadiomicsFeatureExtractor()
-    extractor._applyParams(paramsDict=params)
-
-    """Return features in a single dataframe"""
-    for i, mask in enumerate(masks):
-        print("Image {}/{}".format(i + 1, len(masks)))
-        mask_values = np.unique(mask)  # Get all nuclei label values
-        with tqdm(total=len(mask_values) - 1, colour="green") as pbar:
-            for nucleus_label in mask_values:
-                if nucleus_label == 0:
-                    continue
-                output = extractor.execute(images[i], mask, label=int(nucleus_label))
-                values = [
-                    float(str(output[k]))
-                    for k in output
-                    if not k.startswith("diagnostics")
-                ]
-                if "cols" not in globals():
-                    cols = [k for k in output if not k.startswith("diagnostics")]
-                values.append(int(nucleus_label))
-                metrics.append(values)
-                pbar.update(1)
-    df = pd.DataFrame(metrics, columns=cols + ["label"])
-
-    print(df)
-
-    if save_to is not None and merge_features:
-        df.to_csv(save_to, sep="\t", encoding="utf-8")
-    return df
+class RadiomicsFeatures(str, Enum):
+    Autocorrelation = "Autocorrelation"
+    JointAverage = "JointAverage"
+    ClusterProminence = "ClusterProminence"
+    ClusterShade = "ClusterShade"
+    ClusterTendency = "ClusterTendency"
+    Contrast = "Contrast"
+    Correlation = "Correlation"
 
 
 def extract_features_u(
@@ -149,6 +112,7 @@ def extract_features_u(
     image: RepresentationFragment,
     mask: RepresentationFragment,
     save_to=None,
+    voxel_threshold=10,
     merge_features=False,
 ):
     """
@@ -170,30 +134,41 @@ def extract_features_u(
             df (DataFrame): a table of features with their corresponding images.
     """
 
-    raw_image = sitk.GetImageFromArray(image.data.sel(c=0, t=0).data.compute())
-    mask_image = sitk.GetImageFromArray(mask.data.sel(c=0, t=0).data.compute())
+    image_data = image.data.sel(c=0, t=0).data.compute()
+    mask_data = mask.data.sel(c=0, t=0).data.compute()
+
+    raw_image = sitk.GetImageFromArray(image_data)
+    mask_image = sitk.GetImageFromArray(mask_data)
 
     metrics = []
     extractor = featureextractor.RadiomicsFeatureExtractor()
     extractor._applyParams(paramsDict=params)
 
     """Return features in a single dataframe"""
-    mask_values = np.unique(mask_image)  # Get all nuclei label values
+    mask_values, mask_counts = np.unique(
+        mask_data, return_counts=True
+    )  # Get all nuclei label values
+    print(mask_values, mask_counts)
+    print(image_data, mask_data)
     with tqdm(total=len(mask_values) - 1, colour="green") as pbar:
-        for nucleus_label in mask_values:
-            if nucleus_label == 0:
-                continue
-            output = extractor.execute(raw_image, mask_image, label=int(nucleus_label))
-            values = [
-                float(str(output[k])) for k in output if not k.startswith("diagnostics")
-            ]
-            if "cols" not in globals():
-                cols = [k for k in output if not k.startswith("diagnostics")]
-            values.append(int(nucleus_label))
-            label = create_label(int(nucleus_label), mask, 1)
-            create_size_feature(label, values[3])
-            metrics.append(values)
-            pbar.update(1)
+        for index, nucleus_label in enumerate(mask_values):
+            if mask_counts[index] > voxel_threshold:
+                if nucleus_label == 0:
+                    continue
+                output = extractor.execute(
+                    raw_image, mask_image, label=int(nucleus_label)
+                )
+                values = [
+                    float(str(output[k]))
+                    for k in output
+                    if not k.startswith("diagnostics")
+                ]
+                if "cols" not in globals():
+                    cols = [k for k in output if not k.startswith("diagnostics")]
+                values.append(int(nucleus_label))
+                metrics.append(values)
+                progress(math.floor(index / len(mask_values) * 100))
+                pbar.update(1)
 
     df = pd.DataFrame(metrics, columns=cols + ["label"])
 
@@ -204,15 +179,18 @@ def extract_features_u(
 
 @app.rekuest.register()
 def extract_feature_basic(
-    image: RepresentationFragment, mask: RepresentationFragment
+    mask: RepresentationFragment,
+    image: Optional[RepresentationFragment],
+    voxel_threshold: int = 10,
+    calc_features: List[RadiomicsFeatures] = RadiomicsFeatures.Autocorrelation,
 ) -> TableFragment:
     """Exract features
 
     Extract features from a given image and mask.
 
     Args:
-        image (RepresentationFragment): _description_
         mask (RepresentationFragment): _description_
+        image (RepresentationFragment): _description_
 
     Returns:
         TableFragment: _description_
@@ -220,42 +198,17 @@ def extract_feature_basic(
 
     params = bios.read("params.yaml")
 
-    print(image.data)
+    image = image or get_representation(mask.origins[0])
 
-    raw_image = image.data.sel(c=0, t=0).data.compute()
-    mask_image = mask.data.sel(c=0, t=0).data.compute()
+    raw_image = image
+    mask_image = mask
 
-    print(np.unique(mask_image))
-
-    df = extract_features(
+    df = extract_features_u(
         params,
-        [sitk.GetImageFromArray(raw_image)],
-        [sitk.GetImageFromArray(mask_image)],
+        raw_image,
+        mask_image,
+        voxel_threshold=voxel_threshold,
     )
-
-    # extract_features
-    return from_df(df, name=f"Features of {image.name}")
-
-
-@app.rekuest.register()
-def extract_feature_adv(
-    image: RepresentationFragment, mask: RepresentationFragment
-) -> TableFragment:
-    """Exract features Adv
-
-    Extract features from a givdden image and mask.
-
-    Args:
-        image (RepresentationFragment): _description_
-        mask (RepresentationFragment): _description_
-
-    Returns:
-        TableFragment: _description_
-    """
-
-    params = bios.read("params.yaml")
-
-    df = extract_features_u(params, image, mask)
 
     # extract_features
     return from_df(df, name=f"Features of {image.name}")
@@ -309,7 +262,7 @@ def feature_crosscorrelation(table: TableFragment) -> OmeroFileFragment:
     ax.set_yticklabels(ax.get_ymajorticklabels(), fontsize=10)
     plt.savefig("test.png")
 
-    return upload_bioimage("test.png")
+    return upload_bioimage(open("test.png", "rb"), name="test.png")
 
 
 with app:
