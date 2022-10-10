@@ -1,37 +1,36 @@
+from enum import Enum
 import math
 import os
-from enum import Enum
 from glob import glob
 from typing import List, Optional
 
-import bios
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import radiomics
-import seaborn as sns
 import SimpleITK as sitk
-import tifffile as tfile
+from radiomics import featureextractor
+from tqdm import tqdm
 from arkitekt.apps.connected import ConnectedApp
 from mikro.api.schema import (
-    OmeroFileFragment,
-    RepresentationFragment,
     TableFragment,
+    RepresentationFragment,
+    from_df,
+    OmeroFileFragment,
+    upload_bioimage,
     create_feature,
     create_label,
-    from_df,
     get_representation,
-    upload_bioimage,
 )
-from PIL import Image
-from radiomics import featureextractor
+import yaml
+import seaborn as sns
+import matplotlib.pyplot as plt
 from rekuest.utils import progress
-from tqdm import tqdm
+
 
 app = ConnectedApp()
 app.fakts.grant.open_browser = False
 app.fakts.grant.name = "Radiomics"
-app.fakts.grant.discovery.base_url = "http://localhost:8000/f/"
+app.fakts.grant.discovery.base_url = "http://herre:8000/f/"
 
 
 def prepare_paths(data_dir: str):
@@ -180,7 +179,10 @@ def extract_feature_basic(
     mask: RepresentationFragment,
     image: Optional[RepresentationFragment],
     voxel_threshold: int = 10,
-    calc_features: List[RadiomicsFeatures] = RadiomicsFeatures.Autocorrelation,
+    calc_features: List[RadiomicsFeatures] = [
+        RadiomicsFeatures.Autocorrelation,
+        RadiomicsFeatures.ClusterProminence,
+    ],
 ) -> TableFragment:
     """Exract features
 
@@ -194,7 +196,8 @@ def extract_feature_basic(
         TableFragment: _description_
     """
 
-    params = bios.read("params.yaml")
+    with open("params.yaml") as f:
+        params = yaml.safe_load(f)
 
     image = image or get_representation(mask.origins[0])
 
