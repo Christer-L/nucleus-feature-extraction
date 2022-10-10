@@ -1,31 +1,23 @@
-from enum import Enum
 import math
 import os
+from enum import Enum
 from glob import glob
 from typing import List, Optional
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import radiomics
-import SimpleITK as sitk
-from radiomics import featureextractor
-from tqdm import tqdm
-from arkitekt.apps.connected import ConnectedApp
-from mikro.api.schema import (
-    TableFragment,
-    RepresentationFragment,
-    from_df,
-    OmeroFileFragment,
-    upload_bioimage,
-    create_feature,
-    create_label,
-    get_representation,
-)
-import yaml
 import seaborn as sns
-import matplotlib.pyplot as plt
+import SimpleITK as sitk
+import yaml
+from arkitekt.apps.connected import ConnectedApp
+from mikro.api.schema import (OmeroFileFragment, RepresentationFragment,
+                              TableFragment, create_feature, create_label,
+                              from_df, get_representation, upload_bioimage)
+from radiomics import featureextractor
 from rekuest.utils import progress
-
+from tqdm import tqdm
 
 app = ConnectedApp()
 app.fakts.grant.open_browser = False
