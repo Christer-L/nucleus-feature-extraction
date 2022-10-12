@@ -1,13 +1,8 @@
 import os
 from datetime import datetime
 
-from utils.utils import (
-    extract_features,
-    get_params_from_yaml,
-    numpy_to_itk,
-    prepare_data,
-    prepare_paths,
-)
+from utils.utils import (extract_features, get_params_from_yaml, numpy_to_itk,
+                         prepare_data, prepare_paths)
 
 PARAMS_PATH = "/home/clohk/projects/nucleus_feature_extraction/src/params.yaml"
 DATA_DIR = "/home/clohk/data/real_and_synthetic_nuclei"
