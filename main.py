@@ -12,16 +12,9 @@ import seaborn as sns
 import SimpleITK as sitk
 import yaml
 from arkitekt.apps.connected import ConnectedApp
-from mikro.api.schema import (
-    OmeroFileFragment,
-    RepresentationFragment,
-    TableFragment,
-    create_feature,
-    create_label,
-    from_df,
-    get_representation,
-    upload_bioimage,
-)
+from mikro.api.schema import (OmeroFileFragment, RepresentationFragment,
+                              TableFragment, create_feature, create_label,
+                              from_df, get_representation, upload_bioimage)
 from radiomics import featureextractor
 from rekuest.utils import progress
 from tqdm import tqdm
